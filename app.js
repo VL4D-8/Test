@@ -193,6 +193,26 @@ function observeAll() {
   document.querySelectorAll('.short').forEach((el) => io.observe(el));
 }
 
+function startProgressLoop() {
+  const tick = () => {
+    players.forEach((player, short) => {
+      if (!player || !player.getDuration || !player.getCurrentTime) return;
+      const fill = short.querySelector('.progress-fill');
+      if (!fill) return;
+      try {
+        const dur = player.getDuration();
+        const cur = player.getCurrentTime();
+        if (dur > 0) {
+          const pct = Math.max(0, Math.min(100, (cur / dur) * 100));
+          fill.style.width = pct + '%';
+        }
+      } catch {}
+    });
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
 function unmuteOnInteract() {
   const handler = () => {
     players.forEach((p) => { try { p.unMute(); } catch {} });
@@ -746,6 +766,7 @@ render();
 observeAll();
 unmuteOnInteract();
 setupKeyboardNav();
+startProgressLoop();
 renderChips();
 setupResearch();
 setupTabs();
