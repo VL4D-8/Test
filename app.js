@@ -206,6 +206,9 @@ function unmuteOnInteract() {
 function setupKeyboardNav() {
   window.addEventListener('keydown', (e) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== ' ') return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    if (researchEl && researchEl.classList.contains('open')) return;
     e.preventDefault();
     if (e.key === ' ') {
       const current = currentShort();
@@ -294,7 +297,7 @@ async function runSearch(query) {
     a.target = '_blank';
     a.rel = 'noopener';
     a.className = 'result';
-    a.innerHTML = `<div class="info"><div class="title">Open "${query}" on YouTube ↗</div><div class="ch">Add an API key to search in-page</div></div>`;
+    a.innerHTML = `<div class="info"><div class="title">Open "${escapeHtml(query)}" on YouTube ↗</div><div class="ch">Add an API key to search in-page</div></div>`;
     resultsEl.appendChild(a);
     return;
   }
