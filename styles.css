@@ -373,13 +373,89 @@ button {
   overflow: hidden;
 }
 .result .info .ch { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.result .add {
+.result .row {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.result .row > button {
+  flex: 1;
   font-size: 12px;
-  padding: 6px 8px;
+  padding: 8px 4px;
+  background: transparent;
+  color: var(--fg);
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+.result .row > button:last-child { border-right: 0; }
+.result .row > button.primary {
   background: var(--accent);
   color: #fff;
-  text-align: center;
 }
+.result .row > button.saved { color: var(--accent); }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.tab {
+  flex: 1;
+  padding: 10px 8px;
+  font-size: 13px;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+}
+.tab.active {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  background: var(--surface);
+  color: var(--fg);
+  border-radius: 999px;
+  margin-left: 4px;
+}
+.tab-panel { display: none; flex-direction: column; gap: 12px; }
+.tab-panel.active { display: flex; }
+
+/* Outline */
+.outline { display: flex; flex-direction: column; gap: 12px; }
+.outline:empty { display: none; }
+.outline-section {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.outline-section h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+.outline-section ul, .outline-section ol {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.outline-section li { margin-bottom: 4px; }
+.outline-section .beat {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 8px;
+  font-size: 14px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.08);
+}
+.outline-section .beat:last-child { border-bottom: 0; }
+.outline-section .beat .t { color: var(--accent); font-weight: 600; }
 
 @media (min-width: 600px) {
   .feed, .short { width: 420px; margin: 0 auto; }

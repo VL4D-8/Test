@@ -34,31 +34,57 @@
       with original footage, voice, and angle.
     </p>
 
-    <form class="search-row" id="search-form">
-      <input
-        id="search-input"
-        type="search"
-        placeholder="Search shorts (e.g. 'air fryer recipes')"
-        autocomplete="off"
-      />
-      <button type="submit">Search</button>
-    </form>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="search" role="tab">Search</button>
+      <button class="tab" data-tab="saved" role="tab">Saved <span class="badge" id="saved-count">0</span></button>
+      <button class="tab" data-tab="outline" role="tab">Outline</button>
+    </nav>
 
-    <details class="api-key">
-      <summary>YouTube Data API key (optional, for in-page search)</summary>
-      <p class="hint">
-        Without a key we'll open results on youtube.com in a new tab.
-        Get a free key at console.cloud.google.com → enable "YouTube Data API v3".
-        Stored only in this browser.
-      </p>
-      <div class="key-row">
-        <input id="api-key" type="password" placeholder="AIza…" />
-        <button type="button" id="save-key">Save</button>
-        <button type="button" id="clear-key">Clear</button>
-      </div>
-    </details>
+    <section class="tab-panel active" data-panel="search">
+      <form class="search-row" id="search-form">
+        <input
+          id="search-input"
+          type="search"
+          placeholder="Search shorts (e.g. 'air fryer recipes')"
+          autocomplete="off"
+        />
+        <button type="submit">Search</button>
+      </form>
 
-    <div class="results" id="results" aria-live="polite"></div>
+      <details class="api-key">
+        <summary>YouTube Data API key (optional, for in-page search)</summary>
+        <p class="hint">
+          Without a key we'll open results on youtube.com in a new tab.
+          Get a free key at console.cloud.google.com → enable "YouTube Data API v3".
+          Stored only in this browser.
+        </p>
+        <div class="key-row">
+          <input id="api-key" type="password" placeholder="AIza…" />
+          <button type="button" id="save-key">Save</button>
+          <button type="button" id="clear-key">Clear</button>
+        </div>
+      </details>
+
+      <div class="results" id="results" aria-live="polite"></div>
+    </section>
+
+    <section class="tab-panel" data-panel="saved">
+      <p class="hint">Ideas you've bookmarked. Generate an original angle for any of them.</p>
+      <div class="results" id="saved-list" aria-live="polite"></div>
+    </section>
+
+    <section class="tab-panel" data-panel="outline">
+      <form class="search-row" id="outline-form">
+        <input
+          id="outline-input"
+          type="text"
+          placeholder="Video title or topic (e.g. '5 Excel tricks')"
+          autocomplete="off"
+        />
+        <button type="submit">Generate</button>
+      </form>
+      <div class="outline" id="outline-output"></div>
+    </section>
   </section>
 
   <nav class="bottom-nav" aria-label="Primary">

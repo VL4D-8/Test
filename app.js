@@ -318,27 +318,15 @@ async function runSearch(query) {
       const sn = item.snippet;
       const card = document.createElement('div');
       card.className = 'result';
-      card.innerHTML = `
-        <img src="${sn.thumbnails?.high?.url || sn.thumbnails?.default?.url}" alt="" />
-        <div class="info">
-          <div class="title">${escapeHtml(sn.title)}</div>
-          <div class="ch">${escapeHtml(sn.channelTitle)}</div>
-        </div>
-        <button class="add" type="button">Add to feed</button>
-      `;
-      card.querySelector('.add').addEventListener('click', () => {
-        addToFeed({
-          id,
-          videoId: id,
-          channel: sn.channelTitle,
-          avatar: 'https://i.pravatar.cc/100?u=' + sn.channelId,
-          caption: sn.title,
-          audio: 'Original sound',
-          likes: 0,
-          comments: 0,
-        });
-        closeResearch();
-      });
+      const thumb = sn.thumbnails?.high?.url || sn.thumbnails?.default?.url;
+      const idea = {
+        videoId: id,
+        title: sn.title,
+        channel: sn.channelTitle,
+        channelId: sn.channelId,
+        thumb,
+      };
+      card.appendChild(buildResultCardBody(idea));
       resultsEl.appendChild(card);
     });
     if (!resultsEl.children.length) {
@@ -351,6 +339,216 @@ async function runSearch(query) {
 
 function escapeHtml(s) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// --- Saved ideas (localStorage) ---
+
+const SAVED_KEY = 'yt_saved_ideas';
+
+function loadSaved() {
+  try { return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function persistSaved(list) {
+  localStorage.setItem(SAVED_KEY, JSON.stringify(list));
+  updateSavedBadge();
+}
+
+function isSaved(videoId) {
+  return loadSaved().some((s) => s.videoId === videoId);
+}
+
+function toggleSave(idea) {
+  const list = loadSaved();
+  const i = list.findIndex((s) => s.videoId === idea.videoId);
+  if (i >= 0) list.splice(i, 1);
+  else list.unshift(idea);
+  persistSaved(list);
+  renderSaved();
+  return i < 0;
+}
+
+function updateSavedBadge() {
+  const el = document.getElementById('saved-count');
+  if (el) el.textContent = String(loadSaved().length);
+}
+
+function buildResultCardBody(idea) {
+  const frag = document.createDocumentFragment();
+  const img = document.createElement('img');
+  img.src = idea.thumb || '';
+  img.alt = '';
+  frag.appendChild(img);
+
+  const info = document.createElement('div');
+  info.className = 'info';
+  info.innerHTML = `
+    <div class="title">${escapeHtml(idea.title)}</div>
+    <div class="ch">${escapeHtml(idea.channel || '')}</div>
+  `;
+  frag.appendChild(info);
+
+  const row = document.createElement('div');
+  row.className = 'row';
+
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.className = 'primary';
+  addBtn.textContent = 'Add';
+  addBtn.addEventListener('click', () => {
+    addToFeed({
+      id: idea.videoId,
+      videoId: idea.videoId,
+      channel: idea.channel || '@channel',
+      avatar: 'https://i.pravatar.cc/100?u=' + (idea.channelId || idea.videoId),
+      caption: idea.title,
+      audio: 'Original sound',
+      likes: 0,
+      comments: 0,
+    });
+    closeResearch();
+  });
+  row.appendChild(addBtn);
+
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  const setSaveLabel = () => {
+    const saved = isSaved(idea.videoId);
+    saveBtn.textContent = saved ? '★ Saved' : '☆ Save';
+    saveBtn.classList.toggle('saved', saved);
+  };
+  setSaveLabel();
+  saveBtn.addEventListener('click', () => {
+    toggleSave(idea);
+    setSaveLabel();
+  });
+  row.appendChild(saveBtn);
+
+  const outlineBtn = document.createElement('button');
+  outlineBtn.type = 'button';
+  outlineBtn.textContent = 'Outline';
+  outlineBtn.addEventListener('click', () => {
+    switchTab('outline');
+    document.getElementById('outline-input').value = idea.title;
+    renderOutline(idea.title);
+  });
+  row.appendChild(outlineBtn);
+
+  frag.appendChild(row);
+  return frag;
+}
+
+function renderSaved() {
+  const el = document.getElementById('saved-list');
+  if (!el) return;
+  const list = loadSaved();
+  el.innerHTML = '';
+  if (!list.length) {
+    el.innerHTML = '<p class="hint">No saved ideas yet. Star results in the Search tab.</p>';
+    return;
+  }
+  list.forEach((idea) => {
+    const card = document.createElement('div');
+    card.className = 'result';
+    card.appendChild(buildResultCardBody(idea));
+    el.appendChild(card);
+  });
+}
+
+// --- Tabs ---
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach((p) => p.classList.toggle('active', p.dataset.panel === name));
+  if (name === 'saved') renderSaved();
+}
+
+function setupTabs() {
+  document.querySelectorAll('.tab').forEach((tab) => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+}
+
+// --- Outline generator (template-based, no API) ---
+
+const ANGLES = [
+  'Contrarian take: argue the opposite of the conventional wisdom.',
+  'Beginner POV: "I tried this for the first time — here\'s what nobody tells you."',
+  'Expert breakdown: slow-mo + frame-by-frame analysis with one expert insight.',
+  '30-day challenge: document attempting it daily and show the transformation.',
+  'Cheap vs expensive: same outcome, two budgets, side-by-side.',
+  'Speed-run: do it in under 60 seconds and show the timer.',
+  'Mistake compilation: 3 things people get wrong, fixed in one short.',
+  'Behind the scenes: show the prep/setup nobody else films.',
+];
+
+const HOOKS = [
+  'Stop scrolling — {topic} in 30 seconds.',
+  'Nobody talks about this when it comes to {topic}.',
+  'I was wrong about {topic}. Here\'s what changed my mind.',
+  'You\'re doing {topic} wrong. Here\'s the fix.',
+  'The {topic} trick they don\'t teach you.',
+  'POV: you finally understand {topic}.',
+];
+
+function pick(arr, n) {
+  const copy = [...arr];
+  const out = [];
+  while (out.length < n && copy.length) {
+    out.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0]);
+  }
+  return out;
+}
+
+function renderOutline(rawTitle) {
+  const out = document.getElementById('outline-output');
+  out.innerHTML = '';
+  const title = (rawTitle || '').trim();
+  if (!title) return;
+  const topic = title.replace(/^\d+\s+/, '').toLowerCase();
+
+  const hooks = pick(HOOKS, 3).map((h) => h.replace('{topic}', topic));
+  const angles = pick(ANGLES, 3);
+
+  const beats = [
+    { t: '0–3s', text: `Hook: ${hooks[0]}` },
+    { t: '3–8s', text: `Setup: state the problem or question in one sentence.` },
+    { t: '8–22s', text: `Payoff: deliver 2–3 concrete points or steps about "${topic}". Visuals over words.` },
+    { t: '22–28s', text: `Twist: a counter-intuitive detail or surprising result.` },
+    { t: '28–30s', text: `CTA / loop: ask one question OR loop visually back to the hook.` },
+  ];
+
+  out.appendChild(section('Hook options', `<ul>${hooks.map((h) => `<li>${escapeHtml(h)}</li>`).join('')}</ul>`));
+
+  const beatsHtml = beats.map((b) => `<div class="beat"><div class="t">${b.t}</div><div>${escapeHtml(b.text)}</div></div>`).join('');
+  out.appendChild(section('30-second beat sheet', beatsHtml));
+
+  out.appendChild(section('Original angles to make this YOURS', `<ol>${angles.map((a) => `<li>${escapeHtml(a)}</li>`).join('')}</ol>`));
+
+  out.appendChild(section('Originality checklist', `
+    <ul>
+      <li>Shoot all video yourself (or use licensed/CC stock — Pexels, Pixabay, Mixkit).</li>
+      <li>Write your own script and record your own voice/captions.</li>
+      <li>Add a perspective the original didn't have (your data, story, mistake, result).</li>
+      <li>Change the format — different aspect of the topic, different structure, different ending.</li>
+      <li>Don't reuse clips, music, or thumbnails from the source video.</li>
+    </ul>
+  `));
+}
+
+function section(heading, innerHtml) {
+  const el = document.createElement('div');
+  el.className = 'outline-section';
+  el.innerHTML = `<h3>${escapeHtml(heading)}</h3>${innerHtml}`;
+  return el;
+}
+
+function setupOutline() {
+  document.getElementById('outline-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    renderOutline(document.getElementById('outline-input').value);
+  });
 }
 
 function addToFeed(data) {
@@ -384,3 +582,6 @@ unmuteOnInteract();
 setupKeyboardNav();
 renderChips();
 setupResearch();
+setupTabs();
+setupOutline();
+updateSavedBadge();
