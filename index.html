@@ -13,13 +13,53 @@
       <span class="title">Shorts</span>
     </div>
     <div class="top-actions">
-      <button class="icon-btn" aria-label="Search">🔍</button>
+      <button class="icon-btn" id="open-research" aria-label="Search">🔍</button>
       <button class="icon-btn" aria-label="Camera">🎥</button>
       <button class="icon-btn" aria-label="More">⋮</button>
     </div>
   </header>
 
+  <div class="chips" id="chips" aria-label="Categories"></div>
+
   <main id="feed" class="feed" aria-label="Shorts feed"></main>
+
+  <section id="research" class="research" aria-hidden="true" aria-label="Trend research">
+    <div class="research-head">
+      <h2>Find ideas</h2>
+      <button class="icon-btn" id="close-research" aria-label="Close">✕</button>
+    </div>
+
+    <p class="disclaimer">
+      For inspiration only. Don't re-upload others' clips — make your own version
+      with original footage, voice, and angle.
+    </p>
+
+    <form class="search-row" id="search-form">
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Search shorts (e.g. 'air fryer recipes')"
+        autocomplete="off"
+      />
+      <button type="submit">Search</button>
+    </form>
+
+    <details class="api-key">
+      <summary>YouTube Data API key (optional, for in-page search)</summary>
+      <p class="hint">
+        Without a key we'll open results on youtube.com in a new tab.
+        Get a free key at console.cloud.google.com → enable "YouTube Data API v3".
+        Stored only in this browser.
+      </p>
+      <div class="key-row">
+        <input id="api-key" type="password" placeholder="AIza…" />
+        <button type="button" id="save-key">Save</button>
+        <button type="button" id="clear-key">Clear</button>
+      </div>
+    </details>
+
+    <div class="results" id="results" aria-live="polite"></div>
+  </section>
 
   <nav class="bottom-nav" aria-label="Primary">
     <button class="nav-btn"><span>🏠</span><small>Home</small></button>

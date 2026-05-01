@@ -229,7 +229,158 @@ function currentShort() {
   });
 }
 
+// --- Categories + research drawer ---
+
+const CATEGORIES = [
+  { id: 'all', label: 'All', query: 'shorts' },
+  { id: 'tech', label: 'Tech', query: 'tech shorts' },
+  { id: 'cooking', label: 'Cooking', query: 'cooking shorts recipe' },
+  { id: 'fitness', label: 'Fitness', query: 'fitness shorts workout' },
+  { id: 'travel', label: 'Travel', query: 'travel shorts' },
+  { id: 'comedy', label: 'Comedy', query: 'comedy shorts' },
+  { id: 'gaming', label: 'Gaming', query: 'gaming shorts' },
+  { id: 'music', label: 'Music', query: 'music shorts' },
+  { id: 'cars', label: 'Cars', query: 'car shorts' },
+  { id: 'science', label: 'Science', query: 'science shorts' },
+];
+
+const KEY_STORAGE = 'yt_data_api_key';
+
+const chipsEl = document.getElementById('chips');
+const researchEl = document.getElementById('research');
+const resultsEl = document.getElementById('results');
+const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
+const apiKeyInput = document.getElementById('api-key');
+
+function renderChips() {
+  CATEGORIES.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (i === 0 ? ' active' : '');
+    b.textContent = c.label;
+    b.addEventListener('click', () => {
+      chipsEl.querySelectorAll('.chip').forEach((x) => x.classList.remove('active'));
+      b.classList.add('active');
+      openResearch(c.query);
+    });
+    chipsEl.appendChild(b);
+  });
+}
+
+function openResearch(query) {
+  researchEl.classList.add('open');
+  researchEl.setAttribute('aria-hidden', 'false');
+  if (query) {
+    searchInput.value = query;
+    runSearch(query);
+  }
+}
+
+function closeResearch() {
+  researchEl.classList.remove('open');
+  researchEl.setAttribute('aria-hidden', 'true');
+}
+
+function getKey() {
+  return localStorage.getItem(KEY_STORAGE) || '';
+}
+
+async function runSearch(query) {
+  resultsEl.innerHTML = '';
+  const key = getKey();
+  if (!key) {
+    const a = document.createElement('a');
+    a.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIYAQ%253D%253D`;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.className = 'result';
+    a.innerHTML = `<div class="info"><div class="title">Open "${query}" on YouTube ↗</div><div class="ch">Add an API key to search in-page</div></div>`;
+    resultsEl.appendChild(a);
+    return;
+  }
+  resultsEl.textContent = 'Searching…';
+  try {
+    const url = new URL('https://www.googleapis.com/youtube/v3/search');
+    url.search = new URLSearchParams({
+      part: 'snippet',
+      type: 'video',
+      videoDuration: 'short',
+      maxResults: '12',
+      q: query,
+      key,
+    }).toString();
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    resultsEl.innerHTML = '';
+    (data.items || []).forEach((item) => {
+      const id = item.id.videoId;
+      const sn = item.snippet;
+      const card = document.createElement('div');
+      card.className = 'result';
+      card.innerHTML = `
+        <img src="${sn.thumbnails?.high?.url || sn.thumbnails?.default?.url}" alt="" />
+        <div class="info">
+          <div class="title">${escapeHtml(sn.title)}</div>
+          <div class="ch">${escapeHtml(sn.channelTitle)}</div>
+        </div>
+        <button class="add" type="button">Add to feed</button>
+      `;
+      card.querySelector('.add').addEventListener('click', () => {
+        addToFeed({
+          id,
+          videoId: id,
+          channel: sn.channelTitle,
+          avatar: 'https://i.pravatar.cc/100?u=' + sn.channelId,
+          caption: sn.title,
+          audio: 'Original sound',
+          likes: 0,
+          comments: 0,
+        });
+        closeResearch();
+      });
+      resultsEl.appendChild(card);
+    });
+    if (!resultsEl.children.length) {
+      resultsEl.textContent = 'No results.';
+    }
+  } catch (err) {
+    resultsEl.textContent = `Search failed: ${err.message}. Check the API key.`;
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function addToFeed(data) {
+  const node = buildShort(data);
+  feed.appendChild(node);
+  io.observe(node);
+  node.scrollIntoView({ behavior: 'smooth' });
+}
+
+function setupResearch() {
+  document.getElementById('open-research').addEventListener('click', () => openResearch(''));
+  document.getElementById('close-research').addEventListener('click', closeResearch);
+  searchForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = searchInput.value.trim();
+    if (q) runSearch(q);
+  });
+  apiKeyInput.value = getKey();
+  document.getElementById('save-key').addEventListener('click', () => {
+    localStorage.setItem(KEY_STORAGE, apiKeyInput.value.trim());
+  });
+  document.getElementById('clear-key').addEventListener('click', () => {
+    localStorage.removeItem(KEY_STORAGE);
+    apiKeyInput.value = '';
+  });
+}
+
 render();
 observeAll();
 unmuteOnInteract();
 setupKeyboardNav();
+renderChips();
+setupResearch();
