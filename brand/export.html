@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Trendiest — brand asset exporter</title>
+<style>
+  :root { --accent: #FF1F62; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #0b0b0f;
+    color: #fff;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+    line-height: 1.5;
+  }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  h2 { margin-top: 40px; font-size: 18px; color: rgba(255,255,255,0.85); }
+  .lede { color: rgba(255,255,255,0.65); }
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+  .card img { width: 100%; display: block; border-radius: 8px; background: #000; }
+  .avatar-card { max-width: 380px; }
+  .avatar-card img { aspect-ratio: 1 / 1; }
+  button {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    border: 0;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+    margin-right: 8px;
+    margin-top: 10px;
+  }
+  button:hover { background: #ff3a76; }
+  small { color: rgba(255,255,255,0.6); display: block; margin-top: 8px; }
+  ol { padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  code {
+    background: rgba(255,255,255,0.08);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+  <h1>Trendiest — brand asset exporter</h1>
+  <p class="lede">Click "Download PNG" on each. Then upload to YouTube Studio → Customization → Branding.</p>
+
+  <h2>Channel banner</h2>
+  <p class="lede">YouTube spec: 2560×1440 px, max 6 MB. The center stays visible on every device; the edges show on desktop/TV.</p>
+  <div class="card">
+    <img id="banner-img" src="banner.svg" alt="Trendiest banner" />
+  </div>
+  <button onclick="downloadPng('banner-img', 2560, 1440, 'trendiest-banner.png')">Download PNG (2560×1440)</button>
+  <small>Upload at: youtube.com/channel-customize → Branding → Banner image</small>
+
+  <h2>Channel avatar</h2>
+  <p class="lede">YouTube spec: 800×800 px, max 4 MB. Displayed as a circle.</p>
+  <div class="card avatar-card">
+    <img id="avatar-img" src="avatar.svg" alt="Trendiest avatar" />
+  </div>
+  <button onclick="downloadPng('avatar-img', 800, 800, 'trendiest-avatar.png')">Download PNG (800×800)</button>
+  <small>Upload at: youtube.com/channel-customize → Branding → Picture</small>
+
+  <h2>How to upload</h2>
+  <ol>
+    <li>Sign in at <code>studio.youtube.com</code>.</li>
+    <li>Left sidebar → <strong>Customization</strong> → <strong>Branding</strong>.</li>
+    <li>Picture: upload <code>trendiest-avatar.png</code>. Banner: upload <code>trendiest-banner.png</code>.</li>
+    <li>Click <strong>Publish</strong> top-right.</li>
+  </ol>
+
+  <script>
+    async function downloadPng(imgId, w, h, filename) {
+      const img = document.getElementById(imgId);
+      const btn = event?.target;
+      if (btn) { btn.disabled = true; btn.textContent = 'Rendering…'; }
+      try {
+        const resp = await fetch(img.src);
+        const svgText = await resp.text();
+        const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const tmp = new Image();
+        tmp.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          tmp.onload = resolve;
+          tmp.onerror = reject;
+          tmp.src = url;
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#0b0b0f';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(tmp, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        await new Promise((resolve) => {
+          canvas.toBlob((b) => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(b);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            resolve();
+          }, 'image/png');
+        });
+      } catch (err) {
+        alert('Render failed: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = btn.textContent.replace('Rendering…', 'Download PNG');
+        }
+      }
+    }
+  </script>
+</body>
+</html>

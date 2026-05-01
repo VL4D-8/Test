@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2560 1440" width="2560" height="1440">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a0510"/>
+      <stop offset="0.45" stop-color="#0b0b0f"/>
+      <stop offset="1" stop-color="#1a0510"/>
+    </linearGradient>
+    <linearGradient id="hot" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FF1F62"/>
+      <stop offset="1" stop-color="#FF6A1A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FF3A4D" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#FF3A4D" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="2560" height="1440" fill="url(#bg)"/>
+  <ellipse cx="1280" cy="720" rx="1100" ry="450" fill="url(#glow)"/>
+
+  <!-- Subtle grid lines for "data / charts" feel -->
+  <g stroke="#FFFFFF" stroke-opacity="0.04" stroke-width="2">
+    <line x1="0" y1="360" x2="2560" y2="360"/>
+    <line x1="0" y1="720" x2="2560" y2="720"/>
+    <line x1="0" y1="1080" x2="2560" y2="1080"/>
+  </g>
+
+  <!-- Stylized rising arrow on left and right (signals "trending up") -->
+  <g stroke="url(#hot)" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.75">
+    <polyline points="380,950 540,820 700,880 860,650 1020,720"/>
+    <polyline points="1540,720 1700,650 1860,880 2020,820 2180,950" transform="scale(-1 1) translate(-3720 0)"/>
+  </g>
+
+  <!-- Centered safe area content -->
+  <g transform="translate(1280 720)" text-anchor="middle">
+    <g transform="translate(0 -200)">
+      <rect x="-220" y="-40" width="440" height="60" rx="30" fill="url(#hot)"/>
+      <text y="6" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="36" fill="#0b0b0f" letter-spacing="6">▲ TRENDING NOW</text>
+    </g>
+
+    <text font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="280" fill="#FFFFFF" letter-spacing="-6">TRENDIEST</text>
+
+    <rect x="-580" y="60" width="1160" height="14" fill="url(#hot)" rx="7"/>
+
+    <text y="170" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="500" font-size="58" fill="#FFFFFF" opacity="0.85">60-second drops on what's hot.</text>
+    <text y="240" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="400" font-size="36" fill="#FFFFFF" opacity="0.55" letter-spacing="3">NEW SHORTS DAILY</text>
+  </g>
+</svg>
