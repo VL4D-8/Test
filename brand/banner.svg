@@ -18,31 +18,46 @@
   <rect width="2560" height="1440" fill="url(#bg)"/>
   <ellipse cx="1280" cy="720" rx="1100" ry="450" fill="url(#glow)"/>
 
-  <!-- Subtle grid lines for "data / charts" feel -->
+  <!-- Faint horizontal gridlines well outside the wordmark zone -->
   <g stroke="#FFFFFF" stroke-opacity="0.04" stroke-width="2">
-    <line x1="0" y1="360" x2="2560" y2="360"/>
-    <line x1="0" y1="720" x2="2560" y2="720"/>
-    <line x1="0" y1="1080" x2="2560" y2="1080"/>
+    <line x1="0" y1="240" x2="2560" y2="240"/>
+    <line x1="0" y1="1200" x2="2560" y2="1200"/>
   </g>
 
-  <!-- Stylized rising arrow on left and right (signals "trending up") -->
-  <g stroke="url(#hot)" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.75">
-    <polyline points="380,950 540,820 700,880 860,650 1020,720"/>
-    <polyline points="1540,720 1700,650 1860,880 2020,820 2180,950" transform="scale(-1 1) translate(-3720 0)"/>
+  <!-- Decorative corner arrows (kept far from the wordmark) -->
+  <g stroke="url(#hot)" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.55">
+    <polyline points="160,300 260,220 360,260 460,160"/>
+    <polyline points="430,160 460,160 460,200"/>
+    <polyline points="2400,1140 2300,1220 2200,1180 2100,1280" />
+    <polyline points="2130,1280 2100,1280 2100,1240"/>
   </g>
 
-  <!-- Centered safe area content -->
+  <!-- Centered safe area (~1546x423 visible on every device) -->
   <g transform="translate(1280 720)" text-anchor="middle">
-    <g transform="translate(0 -200)">
-      <rect x="-220" y="-40" width="440" height="60" rx="30" fill="url(#hot)"/>
-      <text y="6" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="36" fill="#0b0b0f" letter-spacing="6">▲ TRENDING NOW</text>
+    <!-- Pill, well above the wordmark -->
+    <g transform="translate(0 -300)">
+      <rect x="-280" y="-32" width="560" height="64" rx="32" fill="url(#hot)"/>
+      <text dominant-baseline="central"
+            font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+            font-weight="900" font-size="38" fill="#0b0b0f" letter-spacing="6">▲ TRENDING NOW</text>
     </g>
 
-    <text font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="280" fill="#FFFFFF" letter-spacing="-6">TRENDIEST</text>
+    <!-- Wordmark (vertically centered around origin) -->
+    <text dominant-baseline="central"
+          font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+          font-weight="900" font-size="280" fill="#FFFFFF" letter-spacing="-6">TRENDIEST</text>
 
-    <rect x="-580" y="60" width="1160" height="14" fill="url(#hot)" rx="7"/>
+    <!-- Gradient bar -->
+    <rect x="-580" y="180" width="1160" height="14" fill="url(#hot)" rx="7"/>
 
-    <text y="170" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="500" font-size="58" fill="#FFFFFF" opacity="0.85">60-second drops on what's hot.</text>
-    <text y="240" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="400" font-size="36" fill="#FFFFFF" opacity="0.55" letter-spacing="3">NEW SHORTS DAILY</text>
+    <!-- Tagline -->
+    <text y="270" dominant-baseline="hanging"
+          font-family="'Helvetica Neue', Arial, sans-serif"
+          font-weight="500" font-size="58" fill="#FFFFFF" opacity="0.85">60-second drops on what's hot.</text>
+
+    <!-- Subtitle -->
+    <text y="350" dominant-baseline="hanging"
+          font-family="'Helvetica Neue', Arial, sans-serif"
+          font-weight="400" font-size="34" fill="#FFFFFF" opacity="0.55" letter-spacing="4">NEW SHORTS DAILY</text>
   </g>
 </svg>
