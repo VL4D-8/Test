@@ -424,6 +424,18 @@ button {
 .tab-panel { display: none; flex-direction: column; gap: 12px; }
 .tab-panel.active { display: flex; }
 
+/* AI toggle */
+.ai-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 0;
+}
+.ai-toggle input { accent-color: var(--accent); }
+
 /* Outline */
 .outline { display: flex; flex-direction: column; gap: 12px; }
 .outline:empty { display: none; }

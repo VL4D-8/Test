@@ -83,6 +83,26 @@
         />
         <button type="submit">Generate</button>
       </form>
+
+      <label class="ai-toggle">
+        <input type="checkbox" id="use-claude" />
+        <span>Use Claude (claude-opus-4-7) for richer, on-topic outlines</span>
+      </label>
+
+      <details class="api-key">
+        <summary>Anthropic API key (for the Claude option)</summary>
+        <p class="hint">
+          Stored only in this browser. Direct browser calls expose the key —
+          fine for personal use; use a backend proxy in production.
+          Get a key at console.anthropic.com.
+        </p>
+        <div class="key-row">
+          <input id="anthropic-key" type="password" placeholder="sk-ant-…" />
+          <button type="button" id="save-anthropic-key">Save</button>
+          <button type="button" id="clear-anthropic-key">Clear</button>
+        </div>
+      </details>
+
       <div class="outline" id="outline-output"></div>
     </section>
   </section>

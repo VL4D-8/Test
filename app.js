@@ -547,8 +547,171 @@ function section(heading, innerHtml) {
 function setupOutline() {
   document.getElementById('outline-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    renderOutline(document.getElementById('outline-input').value);
+    const title = document.getElementById('outline-input').value.trim();
+    if (!title) return;
+    const useClaude = document.getElementById('use-claude').checked;
+    if (useClaude && getAnthropicKey()) {
+      generateOutlineWithClaude(title);
+    } else {
+      if (useClaude) {
+        const out = document.getElementById('outline-output');
+        out.innerHTML = '';
+        out.appendChild(section('Add an Anthropic API key', '<p class="hint">Open the API key panel below and paste a key, then try again. Falling back to the template generator now.</p>'));
+      }
+      renderOutline(title);
+    }
   });
+
+  const anthropicInput = document.getElementById('anthropic-key');
+  anthropicInput.value = getAnthropicKey();
+  document.getElementById('save-anthropic-key').addEventListener('click', () => {
+    localStorage.setItem(ANTHROPIC_KEY_STORAGE, anthropicInput.value.trim());
+  });
+  document.getElementById('clear-anthropic-key').addEventListener('click', () => {
+    localStorage.removeItem(ANTHROPIC_KEY_STORAGE);
+    anthropicInput.value = '';
+  });
+}
+
+// --- Claude integration ---
+
+const ANTHROPIC_KEY_STORAGE = 'anthropic_api_key';
+
+function getAnthropicKey() {
+  return localStorage.getItem(ANTHROPIC_KEY_STORAGE) || '';
+}
+
+const SYSTEM_PROMPT = `You are a YouTube Shorts content strategist helping creators turn an existing video idea into ORIGINAL content of their own (not a re-upload).
+
+Given a video title or topic, output a complete outline in this exact Markdown format and nothing else:
+
+## Hook options
+- <hook 1, written as the actual on-screen line>
+- <hook 2>
+- <hook 3>
+
+## 30-second beat sheet
+- 0–3s: <what happens on screen and what's said>
+- 3–8s: <setup>
+- 8–22s: <payoff / main content — be concrete and specific to the topic>
+- 22–28s: <twist or surprising detail>
+- 28–30s: <CTA or visual loop>
+
+## Original angles
+- <angle 1: a specific take that makes this the creator's own>
+- <angle 2>
+- <angle 3>
+
+## Originality checklist
+- <topic-specific reminder 1>
+- <topic-specific reminder 2>
+- <topic-specific reminder 3>
+
+Rules:
+- Be specific to the topic — do not produce generic placeholders.
+- Never suggest reusing footage, audio, or thumbnails from the source video.
+- Keep each bullet to one line.
+- Output Markdown only — no preamble, no closing remarks.`;
+
+async function generateOutlineWithClaude(title) {
+  const out = document.getElementById('outline-output');
+  out.innerHTML = '';
+  const status = section('Generating with Claude…', '<p class="hint">Streaming response…</p>');
+  out.appendChild(status);
+
+  const key = getAnthropicKey();
+  let buffer = '';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-7',
+        max_tokens: 2048,
+        stream: true,
+        thinking: { type: 'adaptive' },
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: `Video title or topic: ${title}` }],
+      }),
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      out.innerHTML = '';
+      out.appendChild(section('Claude request failed', `<p class="hint">${escapeHtml(`HTTP ${resp.status}: ${errText.slice(0, 500)}`)}</p>`));
+      return;
+    }
+
+    out.innerHTML = '';
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let sseBuffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      sseBuffer += decoder.decode(value, { stream: true });
+      const lines = sseBuffer.split('\n');
+      sseBuffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6);
+        if (payload === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(payload);
+          if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
+            buffer += ev.delta.text;
+            renderClaudeMarkdown(out, buffer);
+          }
+        } catch {
+          // ignore malformed lines
+        }
+      }
+    }
+    renderClaudeMarkdown(out, buffer);
+  } catch (err) {
+    out.innerHTML = '';
+    out.appendChild(section('Claude request failed', `<p class="hint">${escapeHtml(err.message || String(err))}</p>`));
+  }
+}
+
+function renderClaudeMarkdown(container, markdown) {
+  container.innerHTML = '';
+  const sections = markdown.split(/^## /m).filter((s) => s.trim());
+  for (const raw of sections) {
+    const lines = raw.split('\n');
+    const heading = (lines.shift() || '').trim();
+    const body = lines.join('\n').trim();
+
+    const beatLines = body.split('\n').filter((l) => /^-\s*\d+(?:[–-]\d+)?\s*s\s*:/i.test(l.trim()));
+    const isBeatSheet = beatLines.length >= 2;
+
+    let inner;
+    if (isBeatSheet) {
+      inner = beatLines
+        .map((l) => {
+          const m = l.trim().match(/^-\s*([^:]+):\s*(.*)$/);
+          if (!m) return '';
+          return `<div class="beat"><div class="t">${escapeHtml(m[1].trim())}</div><div>${escapeHtml(m[2].trim())}</div></div>`;
+        })
+        .join('');
+    } else {
+      const items = body
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.startsWith('-'))
+        .map((l) => `<li>${escapeHtml(l.replace(/^-\s*/, ''))}</li>`)
+        .join('');
+      inner = items ? `<ul>${items}</ul>` : `<p class="hint">${escapeHtml(body)}</p>`;
+    }
+    container.appendChild(section(heading, inner));
+  }
 }
 
 function addToFeed(data) {
