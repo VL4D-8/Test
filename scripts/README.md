@@ -43,6 +43,7 @@ I track what's about to blow up so you don't have to. New shorts daily.
 
 ## Files in this folder
 
+- `00-channel-trailer.md` — **start here.** Fully-written first short, no placeholders. Pin it to your channel.
 - `01-next-months-trends.md` — predictive list (3 picks)
 - `02-why-everyone-suddenly.md` — explainer for a specific viral thing
 - `03-trend-autopsy.md` — analysis of what made something blow up
