@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Shorts</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">▶</span>
+      <span class="title">Shorts</span>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" aria-label="Search">🔍</button>
+      <button class="icon-btn" aria-label="Camera">🎥</button>
+      <button class="icon-btn" aria-label="More">⋮</button>
+    </div>
+  </header>
+
+  <main id="feed" class="feed" aria-label="Shorts feed"></main>
+
+  <nav class="bottom-nav" aria-label="Primary">
+    <button class="nav-btn"><span>🏠</span><small>Home</small></button>
+    <button class="nav-btn active"><span>⚡</span><small>Shorts</small></button>
+    <button class="nav-btn add"><span>＋</span></button>
+    <button class="nav-btn"><span>📺</span><small>Subs</small></button>
+    <button class="nav-btn"><span>👤</span><small>You</small></button>
+  </nav>
+
+  <template id="short-template">
+    <article class="short" tabindex="0">
+      <video class="short-video" loop playsinline preload="metadata"></video>
+
+      <button class="play-overlay" aria-label="Play/Pause">▶</button>
+
+      <div class="progress"><div class="progress-fill"></div></div>
+
+      <aside class="actions">
+        <button class="action like" data-action="like">
+          <span class="icon">♥</span>
+          <span class="count">0</span>
+        </button>
+        <button class="action" data-action="dislike">
+          <span class="icon">👎</span>
+          <span class="count">Dislike</span>
+        </button>
+        <button class="action" data-action="comment">
+          <span class="icon">💬</span>
+          <span class="count">0</span>
+        </button>
+        <button class="action" data-action="share">
+          <span class="icon">↗</span>
+          <span class="count">Share</span>
+        </button>
+        <button class="action channel-pic" data-action="channel">
+          <img alt="Channel" />
+        </button>
+      </aside>
+
+      <footer class="meta">
+        <div class="channel-row">
+          <strong class="channel-name"></strong>
+          <button class="subscribe-btn">Subscribe</button>
+        </div>
+        <p class="caption"></p>
+        <div class="audio-row">
+          <span>🎵</span>
+          <span class="audio-name"></span>
+        </div>
+      </footer>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
