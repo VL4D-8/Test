@@ -75,11 +75,28 @@ button {
   overflow: hidden;
 }
 
-.short-video {
+.player-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+.yt-player,
+.yt-player iframe {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  background: #000;
+  border: 0;
+  display: block;
+}
+/* Hide the iframe until ready to avoid the "Watch on YouTube" splash flash */
+.short.loading .yt-player { visibility: hidden; }
+.tap-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: pointer;
 }
 
 /* Tap-to-play overlay */

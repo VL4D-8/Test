@@ -1,53 +1,55 @@
+// Real YouTube Shorts (vertical, Creative Commons / official content).
+// Replace `videoId` with any YouTube short/video id you like.
 const SHORTS = [
   {
-    id: 's1',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    channel: '@bigbuckbunny',
+    id: 'tPEE9ZwTmy0',
+    videoId: 'tPEE9ZwTmy0',
+    channel: '@YouTube',
     avatar: 'https://i.pravatar.cc/100?img=12',
-    caption: 'When the bonfire hits different 🔥 #shorts #vibes',
-    audio: 'Original sound - bigbuckbunny',
+    caption: 'A short clip to demo the player ✨ #shorts',
+    audio: 'Original sound',
     likes: 18420,
     comments: 312,
   },
   {
-    id: 's2',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-    channel: '@dreamscape',
+    id: 'aqz-KE-bpKQ',
+    videoId: 'aqz-KE-bpKQ',
+    channel: '@blender',
     avatar: 'https://i.pravatar.cc/100?img=32',
-    caption: 'A tiny moment from a big dream ✨',
-    audio: 'Dream Theme - dreamscape',
+    caption: 'Big Buck Bunny — open movie classic 🐰',
+    audio: 'Big Buck Bunny OST',
     likes: 92100,
     comments: 1840,
   },
   {
-    id: 's3',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-    channel: '@offroad.daily',
+    id: 'ScMzIvxBSi4',
+    videoId: 'ScMzIvxBSi4',
+    channel: '@nature',
     avatar: 'https://i.pravatar.cc/100?img=5',
-    caption: 'Took the Subaru where it was never meant to go 🚙💨',
-    audio: 'Dust & Engines - offroad.daily',
+    caption: 'Beautiful nature in 4K 🌿',
+    audio: 'Nature ambience',
     likes: 5421,
     comments: 87,
   },
   {
-    id: 's4',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-    channel: '@scifi.cuts',
+    id: 'jNQXAC9IVRw',
+    videoId: 'jNQXAC9IVRw',
+    channel: '@jawed',
     avatar: 'https://i.pravatar.cc/100?img=15',
-    caption: 'Sci-fi short of the week 🚀 which one is your favorite?',
-    audio: 'Synthwave Drift - scifi.cuts',
+    caption: 'Me at the zoo — the very first YouTube video 🦁',
+    audio: 'Original sound - jawed',
     likes: 233000,
     comments: 4502,
   },
   {
-    id: 's5',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
-    channel: '@quickreviews',
+    id: 'dQw4w9WgXcQ',
+    videoId: 'dQw4w9WgXcQ',
+    channel: '@rickastleyVEVO',
     avatar: 'https://i.pravatar.cc/100?img=23',
-    caption: 'GTI in 30 seconds — would you daily it?',
-    audio: 'Hot Hatch Beat - quickreviews',
-    likes: 7820,
-    comments: 415,
+    caption: 'A timeless classic 🎶',
+    audio: 'Never Gonna Give You Up - Rick Astley',
+    likes: 7820000,
+    comments: 41500,
   },
 ];
 
@@ -60,13 +62,53 @@ function formatCount(n) {
   return String(n);
 }
 
+const players = new Map(); // short element -> YT.Player
+let apiReady = false;
+const pendingMounts = [];
+
+window.onYouTubeIframeAPIReady = () => {
+  apiReady = true;
+  pendingMounts.splice(0).forEach((fn) => fn());
+};
+
+function mountPlayer(short, videoId) {
+  const target = short.querySelector('.yt-player');
+  const mount = () => {
+    const player = new YT.Player(target, {
+      videoId,
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        modestbranding: 1,
+        rel: 0,
+        playsinline: 1,
+        loop: 1,
+        playlist: videoId,
+        mute: 1,
+        iv_load_policy: 3,
+        fs: 0,
+        disablekb: 1,
+      },
+      events: {
+        onReady: () => {
+          short.classList.remove('loading');
+        },
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.PLAYING) short.classList.remove('paused');
+          if (e.data === YT.PlayerState.PAUSED) short.classList.add('paused');
+        },
+      },
+    });
+    players.set(short, player);
+  };
+  if (apiReady) mount();
+  else pendingMounts.push(mount);
+}
+
 function buildShort(data) {
   const node = tpl.content.firstElementChild.cloneNode(true);
   node.dataset.id = data.id;
-
-  const video = node.querySelector('.short-video');
-  video.src = data.videoUrl;
-  video.muted = true; // start muted so autoplay works
+  node.classList.add('loading');
 
   node.querySelector('.channel-name').textContent = data.channel;
   node.querySelector('.caption').textContent = data.caption;
@@ -93,12 +135,13 @@ function buildShort(data) {
   const shareBtn = node.querySelector('[data-action="share"]');
   shareBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    const shareData = { title: 'Shorts', text: data.caption, url: location.href };
+    const url = `https://youtube.com/shorts/${data.videoId}`;
+    const shareData = { title: 'Shorts', text: data.caption, url };
     if (navigator.share) {
       try { await navigator.share(shareData); } catch {}
     } else {
       try {
-        await navigator.clipboard.writeText(location.href);
+        await navigator.clipboard.writeText(url);
         shareBtn.querySelector('.count').textContent = 'Copied';
       } catch {}
     }
@@ -111,46 +154,35 @@ function buildShort(data) {
     subBtn.textContent = subbed ? 'Subscribed' : 'Subscribe';
   });
 
-  // Tap video to toggle play/pause
-  node.addEventListener('click', () => togglePlay(node));
+  node.querySelector('.tap-layer').addEventListener('click', () => togglePlay(node));
 
-  // Progress bar
-  const fill = node.querySelector('.progress-fill');
-  video.addEventListener('timeupdate', () => {
-    if (!video.duration) return;
-    fill.style.width = (video.currentTime / video.duration) * 100 + '%';
-  });
-
+  mountPlayer(node, data.videoId);
   return node;
 }
 
 function togglePlay(short) {
-  const video = short.querySelector('.short-video');
-  if (video.paused) {
-    video.play();
-    short.classList.remove('paused');
-  } else {
-    video.pause();
-    short.classList.add('paused');
-  }
+  const player = players.get(short);
+  if (!player || !player.getPlayerState) return;
+  const state = player.getPlayerState();
+  if (state === YT.PlayerState.PLAYING) player.pauseVideo();
+  else player.playVideo();
 }
 
 function render() {
   SHORTS.forEach((s) => feed.appendChild(buildShort(s)));
 }
 
-// Auto-play whichever short is most visible; pause others
 const io = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
-      const video = entry.target.querySelector('.short-video');
+      const player = players.get(entry.target);
+      if (!player || !player.playVideo) return;
       if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-        video.currentTime = 0;
-        const p = video.play();
-        if (p && p.catch) p.catch(() => {});
+        try { player.seekTo(0, true); } catch {}
+        player.playVideo();
         entry.target.classList.remove('paused');
       } else {
-        video.pause();
+        player.pauseVideo();
       }
     });
   },
@@ -161,10 +193,9 @@ function observeAll() {
   document.querySelectorAll('.short').forEach((el) => io.observe(el));
 }
 
-// Unmute on first user interaction
 function unmuteOnInteract() {
   const handler = () => {
-    document.querySelectorAll('.short-video').forEach((v) => (v.muted = false));
+    players.forEach((p) => { try { p.unMute(); } catch {} });
     window.removeEventListener('click', handler);
     window.removeEventListener('keydown', handler);
   };
@@ -172,7 +203,6 @@ function unmuteOnInteract() {
   window.addEventListener('keydown', handler, { once: true });
 }
 
-// Keyboard navigation: arrow up/down to jump between shorts
 function setupKeyboardNav() {
   window.addEventListener('keydown', (e) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== ' ') return;
